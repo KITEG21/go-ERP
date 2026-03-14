@@ -1,0 +1,1 @@
+swag init -g cmd/main.go --output cmd/docs : Comando para actualizar documentacion de Swagger

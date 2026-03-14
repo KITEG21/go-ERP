@@ -1,0 +1,570 @@
+basePath: /api/v1
+definitions:
+  attendance.Attendance:
+    properties:
+      check_in:
+        type: string
+      check_out:
+        type: string
+      date:
+        type: string
+      id:
+        type: integer
+      status:
+        $ref: '#/definitions/attendance.AttendanceState'
+      worker:
+        $ref: '#/definitions/workers.Worker'
+      worker_id:
+        type: integer
+    type: object
+  attendance.AttendanceState:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - CheckedIn
+    - CheckedOut
+    - Expired
+  auth.LoginDto:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.RegisterDto:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  common.APIError:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  departments.Department:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  dtos.CreateAttendanceDto:
+    properties:
+      check_in:
+        type: string
+      check_out:
+        type: string
+      date:
+        type: string
+      worker_id:
+        type: integer
+    required:
+    - check_in
+    - check_out
+    - date
+    - worker_id
+    type: object
+  dtos.CreateDepartmentDto:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  dtos.CreatePayrollDto:
+    properties:
+      base_salary:
+        type: number
+      bonus:
+        type: number
+      deductions:
+        type: number
+      month:
+        type: string
+      worker_id:
+        type: integer
+    required:
+    - month
+    - worker_id
+    type: object
+  dtos.CreateWorkerDto:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  dtos.UpdateAttendanceDto:
+    properties:
+      check_out:
+        type: string
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  dtos.UpdateDepartmentDto:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+    - id
+    - name
+    type: object
+  dtos.UpdateWorkerDto:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+    - email
+    - id
+    - name
+    type: object
+  workers.Worker:
+    properties:
+      department:
+        $ref: '#/definitions/departments.Department'
+      department_id:
+        type: integer
+      email:
+        type: string
+      hire_date:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+      salary:
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Simple ERP API
+  title: User API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Returns service status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: We are up!
+          schema:
+            type: string
+      summary: Health check
+      tags:
+      - health
+  /attendances:
+    get:
+      description: Get all attendances
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/attendance.Attendance'
+            type: array
+      summary: List attendances
+      tags:
+      - attendances
+  /attendances/{id}:
+    get:
+      description: Get an attendance record by its ID
+      parameters:
+      - description: Attendance ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/attendance.Attendance'
+      summary: Get an attendance record by ID
+      tags:
+      - attendances
+  /attendances/checkin:
+    post:
+      consumes:
+      - application/json
+      description: Create a new attendance record for a worker
+      parameters:
+      - description: Attendance payload
+        in: body
+        name: attendance
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateAttendanceDto'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create an attendance record
+      tags:
+      - attendances
+  /attendances/checkout:
+    put:
+      consumes:
+      - application/json
+      description: Update the check-out time of an existing attendance record
+      parameters:
+      - description: Attendance ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated attendance payload
+        in: body
+        name: attendance
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateAttendanceDto'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an attendance record
+      tags:
+      - attendances
+  /attendances/worker/{worker_id}:
+    get:
+      description: Get all attendance records for a specific worker
+      parameters:
+      - description: Worker ID
+        in: path
+        name: worker_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/attendance.Attendance'
+            type: array
+      summary: Get attendance records by worker ID
+      tags:
+      - attendances
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.APIError'
+      summary: Login a user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.APIError'
+      summary: Register a new user
+      tags:
+      - auth
+  /departments:
+    get:
+      description: Get all departments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/departments.Department'
+            type: array
+      summary: List departments
+      tags:
+      - departments
+    post:
+      consumes:
+      - application/json
+      description: Create a new department
+      parameters:
+      - description: Department payload
+        in: body
+        name: department
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateDepartmentDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.CreateDepartmentDto'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.APIError'
+      summary: Create a department
+      tags:
+      - departments
+    put:
+      consumes:
+      - application/json
+      description: Update an existing department
+      parameters:
+      - description: Department payload
+        in: body
+        name: department
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateDepartmentDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.UpdateDepartmentDto'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.APIError'
+      summary: Update a department
+      tags:
+      - departments
+  /departments/{id}:
+    delete:
+      description: Delete a department by ID
+      responses: {}
+      summary: Delete a department
+      tags:
+      - departments
+    get:
+      description: Get a department by ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/departments.Department'
+      summary: Get a department
+      tags:
+      - departments
+  /payroll/:workerId:
+    get:
+      description: Get payrolls by worker ID
+      parameters:
+      - description: Worker ID
+        in: path
+        name: workerId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: Get payrolls for a worker
+      tags:
+      - payrolls
+  /payroll/calculate:
+    post:
+      consumes:
+      - application/json
+      description: Calculate net salary for a payroll payload
+      parameters:
+      - description: Payroll payload
+        in: body
+        name: payroll
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreatePayrollDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.APIError'
+      summary: Calculate payroll
+      tags:
+      - payrolls
+  /payrolls:
+    get:
+      description: Get all payrolls
+      produces:
+      - application/json
+      responses: {}
+      summary: List payrolls
+      tags:
+      - payrolls
+  /workers:
+    get:
+      description: Get all workers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/workers.Worker'
+            type: array
+      summary: List workers
+      tags:
+      - workers
+    post:
+      consumes:
+      - application/json
+      description: Create a new worker
+      parameters:
+      - description: Worker payload
+        in: body
+        name: worker
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateWorkerDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.CreateWorkerDto'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.APIError'
+      summary: Create a worker
+      tags:
+      - workers
+    put:
+      consumes:
+      - application/json
+      description: Update an existing worker
+      parameters:
+      - description: Worker payload
+        in: body
+        name: worker
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateWorkerDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.UpdateWorkerDto'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.APIError'
+      summary: Update a worker
+      tags:
+      - workers
+  /workers/{id}:
+    delete:
+      description: Delete a worker by ID
+      responses: {}
+      summary: Delete a worker
+      tags:
+      - workers
+    get:
+      description: Get a worker by ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/workers.Worker'
+      summary: Get a worker
+      tags:
+      - workers
+swagger: "2.0"
