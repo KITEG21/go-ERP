@@ -469,6 +469,57 @@
                 "responses": {}
             }
         },
+        "/reports/workers/attendance": {
+            "get": {
+                "description": "Get aggregated attendance data for workers within a date range",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reports"
+                ],
+                "summary": "Get worker attendance report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by department ID",
+                        "name": "department_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by worker ID",
+                        "name": "worker_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/report.WorkerAttendanceReport"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/workers": {
             "get": {
                 "description": "Get all workers",
@@ -821,6 +872,32 @@
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "report.WorkerAttendanceReport": {
+            "type": "object",
+            "properties": {
+                "attendanceRate": {
+                    "type": "number"
+                },
+                "daysAbsent": {
+                    "type": "integer"
+                },
+                "daysPresent": {
+                    "type": "integer"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "hoursWorked": {
+                    "type": "number"
+                },
+                "workerId": {
+                    "type": "integer"
+                },
+                "workerName": {
                     "type": "string"
                 }
             }

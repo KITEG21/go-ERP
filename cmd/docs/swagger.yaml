@@ -153,6 +153,23 @@ definitions:
     - id
     - name
     type: object
+  report.WorkerAttendanceReport:
+    properties:
+      attendanceRate:
+        type: number
+      daysAbsent:
+        type: integer
+      daysPresent:
+        type: integer
+      department:
+        type: string
+      hoursWorked:
+        type: number
+      workerId:
+        type: integer
+      workerName:
+        type: string
+    type: object
   workers.Worker:
     properties:
       department:
@@ -483,6 +500,40 @@ paths:
       summary: List payrolls
       tags:
       - payrolls
+  /reports/workers/attendance:
+    get:
+      description: Get aggregated attendance data for workers within a date range
+      parameters:
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - description: Filter by department ID
+        in: query
+        name: department_id
+        type: integer
+      - description: Filter by worker ID
+        in: query
+        name: worker_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/report.WorkerAttendanceReport'
+            type: array
+      summary: Get worker attendance report
+      tags:
+      - reports
   /workers:
     get:
       description: Get all workers

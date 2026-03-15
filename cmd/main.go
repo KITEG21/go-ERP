@@ -14,6 +14,7 @@ import (
 	"user_api/internal/departments"
 	"user_api/internal/middleware"
 	"user_api/internal/payroll"
+	"user_api/internal/reports"
 	"user_api/internal/workers"
 
 	"github.com/gin-gonic/gin"
@@ -58,6 +59,9 @@ func main() {
 	payrollService := payroll.NewPayrollService(payrollRepo)
 	payrollHandler := payroll.NewPayrollHandler(payrollService)
 
+	reportService := reports.ReportService{}
+	reportHandler := reports.NewReportHandler(&reportService)
+
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	publicRoutes := r.Group("/api/v1/auth")
@@ -98,6 +102,8 @@ func main() {
 	api.GET("/payrolls", payrollHandler.GetAllPayrolls)
 	api.POST("/payroll/calculate", payrollHandler.CalculatePayroll)
 	api.GET("/payrolls/:workerId", payrollHandler.GetPayrollByWorkerId)
+
+	api.GET("/reports/workers/attendance", reportHandler.GetWorkerAttendanceReport)
 
 	r.Run(":8080")
 
