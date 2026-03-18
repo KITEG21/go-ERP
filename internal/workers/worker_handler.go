@@ -6,6 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10/non-standard/validators"
 	"user_api/internal/common"
 	"user_api/internal/dto/worker"
 )
@@ -53,9 +55,26 @@ func (h *WorkerHandler) GetAllWorkers(c *gin.Context) {
 // @Router /workers [post]
 func (h *WorkerHandler) CreateWorker(c *gin.Context) {
 	var dto dtos.CreateWorkerDto
+	validate := validator.New()
+	validate.RegisterValidation("notblank", validators.NotBlank)
 
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "401"})
+		return
+	}
+	err := validate.Struct(dto)
+
+	if err != nil {
+		var validationErrors []common.ValidationErrorResponse
+		for _, err := range err.(validator.ValidationErrors) {
+			var error common.ValidationErrorResponse
+			error.Field = err.Field()
+			error.Tag = err.Tag()
+			error.Value = err.Param()
+			error.Message = error.CustomErrorMessage(err)
+			validationErrors = append(validationErrors, error)
+		}
+		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
 	var worker = Worker{
@@ -100,10 +119,28 @@ func (h *WorkerHandler) GetWorkerById(c *gin.Context) {
 // @Router /workers [put]
 func (h *WorkerHandler) UpdateWorker(c *gin.Context) {
 	var dto dtos.UpdateWorkerDto
+	validate := validator.New()
+	validate.RegisterValidation("notblank", validators.NotBlank)
+
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "400"})
 		return
 	}
+	err := validate.Struct(dto)
+	if err != nil {
+		var validationErrors []common.ValidationErrorResponse
+		for _, err := range err.(validator.ValidationErrors) {
+			var error common.ValidationErrorResponse
+			error.Field = err.Field()
+			error.Tag = err.Tag()
+			error.Value = err.Param()
+			error.Message = error.CustomErrorMessage(err)
+			validationErrors = append(validationErrors, error)
+		}
+		c.JSON(http.StatusBadRequest, validationErrors)
+		return
+	}
+
 	worker, err := h.service.GetWorkerById(dto.Id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, common.APIError{Message: "Worker not found", Code: "404"})

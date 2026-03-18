@@ -1,6 +1,6 @@
 package auth
 
 type LoginDto struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Email    string `json:"email" validate:"required,email,notblank"`
+	Password string `json:"password" validate:"required,min=6,notblank"`
 }

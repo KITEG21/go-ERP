@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10/non-standard/validators"
 
 	"user_api/internal/common"
 	"user_api/internal/dto/department"
@@ -42,8 +44,25 @@ func (h *DepartmentHandler) GetAllDepartments(c *gin.Context) {
 // @Router /departments [post]
 func (h *DepartmentHandler) CreateDepartment(c *gin.Context) {
 	var dto dtos.CreateDepartmentDto
+	validate := validator.New()
+
+	validate.RegisterValidation("notblank", validators.NotBlank)
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "400"})
+		return
+	}
+
+	if err := validate.Struct(dto); err != nil {
+		var validationErrors []common.ValidationErrorResponse
+		for _, err := range err.(validator.ValidationErrors) {
+			var error common.ValidationErrorResponse
+			error.Field = err.Field()
+			error.Tag = err.Tag()
+			error.Value = err.Param()
+			error.Message = error.CustomErrorMessage(err)
+			validationErrors = append(validationErrors, error)
+		}
+		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
 
@@ -94,10 +113,28 @@ func (h *DepartmentHandler) GetDepartmentByID(c *gin.Context) {
 // @Router /departments [put]
 func (h *DepartmentHandler) UpdateDepartment(c *gin.Context) {
 	var dto dtos.UpdateDepartmentDto
+	validate := validator.New()
+
+	validate.RegisterValidation("notblank", validators.NotBlank)
+
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "400"})
 		return
 	}
+	if err := validate.Struct(dto); err != nil {
+		var validationErrors []common.ValidationErrorResponse
+		for _, err := range err.(validator.ValidationErrors) {
+			var error common.ValidationErrorResponse
+			error.Field = err.Field()
+			error.Tag = err.Tag()
+			error.Value = err.Param()
+			error.Message = error.CustomErrorMessage(err)
+			validationErrors = append(validationErrors, error)
+		}
+		c.JSON(http.StatusBadRequest, validationErrors)
+		return
+	}
+
 	department, err := h.service.GetDepartmentById(dto.Id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, common.APIError{Message: "Department not found", Code: "404"})

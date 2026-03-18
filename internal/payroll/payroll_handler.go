@@ -1,11 +1,14 @@
 package payroll
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"user_api/internal/common"
 	"user_api/internal/dto/payroll"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10/non-standard/validators"
 )
 
 type PayrollHandler struct {
@@ -39,8 +42,23 @@ func (h *PayrollHandler) GetAllPayrolls(c *gin.Context) {
 // @Router /payroll/calculate [post]
 func (h *PayrollHandler) CalculatePayroll(c *gin.Context) {
 	var dto dtos.CreatePayrollDto
+	validate := validator.New()
+	validate.RegisterValidation("notblank", validators.NotBlank)
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "400"})
+		return
+	}
+	if err := validate.Struct(dto); err != nil {
+		var validationErrors []common.ValidationErrorResponse
+		for _, err := range err.(validator.ValidationErrors) {
+			var error common.ValidationErrorResponse
+			error.Field = err.Field()
+			error.Tag = err.Tag()
+			error.Value = err.Param()
+			error.Message = error.CustomErrorMessage(err)
+			validationErrors = append(validationErrors, error)
+		}
+		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
 	netSalary := dto.BaseSalary + dto.Bonus - dto.Deductions
@@ -53,14 +71,6 @@ func (h *PayrollHandler) CalculatePayroll(c *gin.Context) {
 		NetSalary:  netSalary,
 	}
 
-	// map[string]interface{}{
-	// 	"worker_id":   dto.WorkerID,
-	// 	"month":       dto.Month,
-	// 	"base_salary": dto.BaseSalary,
-	// 	"bonus":       dto.Bonus,
-	// 	"deductions":  dto.Deductions,
-	// 	"net_salary":  netSalary,
-	//}
 	c.JSON(http.StatusOK, resp)
 }
 

@@ -1,7 +1,7 @@
 package dtos
 
 type UpdateWorkerDto struct {
-	Id    int    `json:"id" binding:"required"`
-	Name  string `json:"name" binding:"required"`
-	Email string `json:"email" binding:"required,email"`
+	Id    int    `json:"id" validate:"required,gt=0"`
+	Name  string `json:"name" validate:"required,min=3,max=100"`
+	Email string `json:"email" validate:"required,email"`
 }
