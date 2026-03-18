@@ -1,10 +1,10 @@
 package workers
 
 type WorkerService struct {
-	repo WorkerRepository
+	repo WorkerRepo
 }
 
-func NewWorkerService(repo WorkerRepository) *WorkerService {
+func NewWorkerService(repo WorkerRepo) *WorkerService {
 	return &WorkerService{repo: repo}
 }
 

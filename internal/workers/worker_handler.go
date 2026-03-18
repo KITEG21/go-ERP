@@ -81,6 +81,10 @@ func (h *WorkerHandler) CreateWorker(c *gin.Context) {
 		Name:  dto.Name,
 		Email: dto.Email,
 	}
+	if dto.DepartmentId != nil {
+		worker.DepartmentId = dto.DepartmentId
+	}
+
 	h.service.CreateWorker(&worker)
 	c.JSON(http.StatusCreated, dto)
 }
@@ -148,6 +152,9 @@ func (h *WorkerHandler) UpdateWorker(c *gin.Context) {
 	}
 	worker.Name = dto.Name
 	worker.Email = dto.Email
+	if dto.DepartmentId != nil {
+		worker.DepartmentId = dto.DepartmentId
+	}
 	h.service.UpdateWorker(&worker)
 	c.JSON(http.StatusOK, worker)
 }

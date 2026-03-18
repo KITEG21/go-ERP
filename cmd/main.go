@@ -43,7 +43,7 @@ func main() {
 	r.SetTrustedProxies([]string{"192.168.1.2", "127.168.1.2"})
 	jwtService := auth.NewJWTService(jwtSecret)
 
-	workerRepo := workers.WorkerRepository{}
+	workerRepo := &workers.WorkerRepository{}
 	workerService := workers.NewWorkerService(workerRepo)
 	workerHandler := workers.NewWorkerHandler(workerService)
 

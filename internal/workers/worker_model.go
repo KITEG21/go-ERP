@@ -7,7 +7,7 @@ type Worker struct {
 	Name         string                 `json:"name"`
 	Email        string                 `json:"email"`
 	Phone        string                 `json:"phone"`
-	DepartmentId int                    `json:"department_id"`
+	DepartmentId *int                   `json:"department_id"`
 	Department   departments.Department `json:"department" gorm:"foreignKey:DepartmentId;references:ID"`
 	Salary       float32                `json:"salary"`
 	HireDate     string                 `json:"hire_date"`
