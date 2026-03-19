@@ -18,7 +18,7 @@ import (
 func setupDepartmentRouter(t *testing.T) *gin.Engine {
 	t.Helper()
 
-	_ = godotenv.Load("../../.env")
+	_ = godotenv.Load("../../.env.test")
 
 	database.Connect()
 	database.DB.AutoMigrate(&Department{})

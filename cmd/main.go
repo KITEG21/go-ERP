@@ -25,14 +25,12 @@ import (
 
 func main() {
 	_ = godotenv.Load("../.env")
+
 	database.Connect()
-	database.DB.AutoMigrate(
-		&workers.Worker{},
-		&departments.Department{},
-		&attendance.Attendance{},
-		&payroll.Payroll{},
-		&auth.User{},
-	)
+	if err := database.RunMigrations(); err != nil {
+		panic(err)
+	}
+
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		jwtSecret = "default_secret"

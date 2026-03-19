@@ -21,7 +21,7 @@ import (
 func setupAttendanceRouter(t *testing.T) (*gin.Engine, int) {
 	t.Helper()
 
-	_ = godotenv.Load("../../.env")
+	_ = godotenv.Load("../../.env.test")
 
 	database.Connect()
 	database.DB.AutoMigrate(
