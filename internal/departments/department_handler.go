@@ -10,6 +10,7 @@ import (
 
 	"user_api/internal/common"
 	"user_api/internal/dto/department"
+	"user_api/internal/dto/pagination"
 )
 
 type DepartmentHandler struct {
@@ -21,15 +22,28 @@ func NewDepartmentHandler(service *DepartmentService) *DepartmentHandler {
 }
 
 // GetAllDepartments godoc
-// @Summary List departments
-// @Description Get all departments
+// @Summary List departments (paginated)
+// @Description Get departments with optional pagination query parameters
 // @Tags departments
 // @Produce json
-// @Success 200 {array} departments.Department
+// @Param page query int false "Page number (default 1)"
+// @Param page_size query int false "Page size (default 10)"
+// @Security BearerAuth
+// @Success 200 {object} pagination.PaginationResponse
 // @Router /departments [get]
 func (h *DepartmentHandler) GetAllDepartments(c *gin.Context) {
-	departments, _ := h.service.GetAllDepartments()
-	c.JSON(http.StatusOK, departments)
+	req, ok := pagination.ParseFromQuery(c)
+	if !ok {
+		return
+	}
+
+	departments, total, err := h.service.GetDepartmentsPaginated(req.Page, req.PageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.APIError{Message: err.Error(), Code: "500"})
+		return
+	}
+
+	c.JSON(http.StatusOK, pagination.BuildResponse(req.Page, req.PageSize, total, departments))
 }
 
 // CreateDepartment godoc
@@ -41,6 +55,7 @@ func (h *DepartmentHandler) GetAllDepartments(c *gin.Context) {
 // @Param department body dtos.CreateDepartmentDto true "Department payload"
 // @Success 201 {object} dtos.CreateDepartmentDto
 // @Failure 400 {object} common.APIError
+// @Security BearerAuth
 // @Router /departments [post]
 func (h *DepartmentHandler) CreateDepartment(c *gin.Context) {
 	var dto dtos.CreateDepartmentDto
@@ -84,6 +99,7 @@ func (h *DepartmentHandler) CreateDepartment(c *gin.Context) {
 // @Description Get a department by ID
 // @Tags departments
 // @Produce json
+// @Security BearerAuth
 // @Success 200 {object} departments.Department
 // @Router /departments/{id} [get]
 func (h *DepartmentHandler) GetDepartmentByID(c *gin.Context) {
@@ -110,6 +126,7 @@ func (h *DepartmentHandler) GetDepartmentByID(c *gin.Context) {
 // @Param department body dtos.UpdateDepartmentDto true "Department payload"
 // @Success 201 {object} dtos.UpdateDepartmentDto
 // @Failure 400 {object} common.APIError
+// @Security BearerAuth
 // @Router /departments [put]
 func (h *DepartmentHandler) UpdateDepartment(c *gin.Context) {
 	var dto dtos.UpdateDepartmentDto
@@ -154,6 +171,7 @@ func (h *DepartmentHandler) UpdateDepartment(c *gin.Context) {
 // @Description Delete a department by ID
 // @Router /departments/{id} [delete]
 // @Tags departments
+// @Security BearerAuth
 func (h *DepartmentHandler) DeleteDepartment(c *gin.Context) {
 	id := c.Param("id")
 	departmentId, err := strconv.Atoi(id)

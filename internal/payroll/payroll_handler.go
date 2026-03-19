@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"user_api/internal/common"
+	"user_api/internal/dto/pagination"
 	"user_api/internal/dto/payroll"
 
 	"github.com/gin-gonic/gin"
@@ -20,14 +21,28 @@ func NewPayrollHandler(service *PayrollService) *PayrollHandler {
 }
 
 // GetAllPayrolls godoc
-// @Summary List payrolls
-// @Description Get all payrolls
+// @Summary List payrolls (paginated)
+// @Description Get payrolls with optional pagination query parameters
 // @Tags payrolls
 // @Produce json
+// @Param page query int false "Page number (default 1)"
+// @Param page_size query int false "Page size (default 10)"
+// @Security BearerAuth
+// @Success 200 {object} pagination.PaginationResponse
 // @Router /payrolls [get]
 func (h *PayrollHandler) GetAllPayrolls(c *gin.Context) {
-	payrolls, _ := h.service.GetAllPayrolls()
-	c.JSON(http.StatusOK, payrolls)
+	req, ok := pagination.ParseFromQuery(c)
+	if !ok {
+		return
+	}
+
+	payrolls, total, err := h.service.GetPayrollsPaginated(req.Page, req.PageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.APIError{Message: err.Error(), Code: "500"})
+		return
+	}
+
+	c.JSON(http.StatusOK, pagination.BuildResponse(req.Page, req.PageSize, total, payrolls))
 }
 
 // CalculatePayroll godoc
@@ -39,6 +54,7 @@ func (h *PayrollHandler) GetAllPayrolls(c *gin.Context) {
 // @Param payroll body dtos.CreatePayrollDto true "Payroll payload"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} common.APIError
+// @Security BearerAuth
 // @Router /payroll/calculate [post]
 func (h *PayrollHandler) CalculatePayroll(c *gin.Context) {
 	var dto dtos.CreatePayrollDto
@@ -80,6 +96,7 @@ func (h *PayrollHandler) CalculatePayroll(c *gin.Context) {
 // @Tags payrolls
 // @Produce json
 // @Param workerId path int true "Worker ID"
+// @Security BearerAuth
 // @Router /payroll/:workerId [get]
 func (h *PayrollHandler) GetPayrollByWorkerId(c *gin.Context) {
 	workerId, err := strconv.Atoi(c.Param("workerId"))

@@ -22,7 +22,7 @@ CREATE TABLE users (
   password TEXT NOT NULL
 );
 
-CREATE TABLE attendance (
+CREATE TABLE attendances (
   id SERIAL PRIMARY KEY,
   worker_id INT NOT NULL,
   check_in TIME NOT NULL,

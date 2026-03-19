@@ -27,6 +27,7 @@ func NewReportHandler(s *ReportService) *ReportHandler {
 // @Param department_id query int false "Filter by department ID"
 // @Param worker_id query int false "Filter by worker ID"
 // @Success 200 {array} report.WorkerAttendanceReport
+// @Security BearerAuth
 // @Router /reports/workers/attendance [get]
 func (h *ReportHandler) GetWorkerAttendanceReport(c *gin.Context) {
 	// Parse query parameters

@@ -30,25 +30,29 @@ definitions:
   auth.LoginDto:
     properties:
       email:
+        example: user@example.com
+        format: email
         type: string
       password:
         minLength: 6
         type: string
     required:
-    - email
     - password
     type: object
   auth.RegisterDto:
     properties:
       email:
+        example: user@example.com
+        format: email
         type: string
       name:
+        maxLength: 100
+        minLength: 3
         type: string
       password:
         minLength: 6
         type: string
     required:
-    - email
     - name
     - password
     type: object
@@ -87,8 +91,11 @@ definitions:
   dtos.CreateDepartmentDto:
     properties:
       description:
+        maxLength: 255
         type: string
       name:
+        maxLength: 100
+        minLength: 3
         type: string
     required:
     - name
@@ -98,6 +105,7 @@ definitions:
       base_salary:
         type: number
       bonus:
+        minimum: 0
         type: number
       deductions:
         type: number
@@ -106,14 +114,21 @@ definitions:
       worker_id:
         type: integer
     required:
+    - base_salary
     - month
     - worker_id
     type: object
   dtos.CreateWorkerDto:
     properties:
+      department_id:
+        type: integer
       email:
         type: string
+      hire_date:
+        type: string
       name:
+        maxLength: 100
+        minLength: 3
         type: string
     required:
     - email
@@ -131,10 +146,13 @@ definitions:
   dtos.UpdateDepartmentDto:
     properties:
       description:
+        maxLength: 255
         type: string
       id:
         type: integer
       name:
+        maxLength: 100
+        minLength: 3
         type: string
     required:
     - id
@@ -142,16 +160,32 @@ definitions:
     type: object
   dtos.UpdateWorkerDto:
     properties:
+      department_id:
+        type: integer
       email:
         type: string
       id:
         type: integer
       name:
+        maxLength: 100
+        minLength: 3
         type: string
     required:
     - email
     - id
     - name
+    type: object
+  pagination.PaginationResponse:
+    properties:
+      data: {}
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
     type: object
   report.WorkerAttendanceReport:
     properties:
@@ -211,17 +245,26 @@ paths:
       - health
   /attendances:
     get:
-      description: Get all attendances
+      description: Get attendances with optional pagination query parameters
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Page size (default 10)
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/attendance.Attendance'
-            type: array
-      summary: List attendances
+            $ref: '#/definitions/pagination.PaginationResponse'
+      security:
+      - BearerAuth: []
+      summary: List attendances (paginated)
       tags:
       - attendances
   /attendances/{id}:
@@ -240,6 +283,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/attendance.Attendance'
+      security:
+      - BearerAuth: []
       summary: Get an attendance record by ID
       tags:
       - attendances
@@ -258,6 +303,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - BearerAuth: []
       summary: Create an attendance record
       tags:
       - attendances
@@ -281,6 +328,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - BearerAuth: []
       summary: Update an attendance record
       tags:
       - attendances
@@ -302,6 +351,8 @@ paths:
             items:
               $ref: '#/definitions/attendance.Attendance'
             type: array
+      security:
+      - BearerAuth: []
       summary: Get attendance records by worker ID
       tags:
       - attendances
@@ -367,17 +418,26 @@ paths:
       - auth
   /departments:
     get:
-      description: Get all departments
+      description: Get departments with optional pagination query parameters
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Page size (default 10)
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/departments.Department'
-            type: array
-      summary: List departments
+            $ref: '#/definitions/pagination.PaginationResponse'
+      security:
+      - BearerAuth: []
+      summary: List departments (paginated)
       tags:
       - departments
     post:
@@ -402,6 +462,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/common.APIError'
+      security:
+      - BearerAuth: []
       summary: Create a department
       tags:
       - departments
@@ -427,6 +489,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/common.APIError'
+      security:
+      - BearerAuth: []
       summary: Update a department
       tags:
       - departments
@@ -434,6 +498,8 @@ paths:
     delete:
       description: Delete a department by ID
       responses: {}
+      security:
+      - BearerAuth: []
       summary: Delete a department
       tags:
       - departments
@@ -446,6 +512,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/departments.Department'
+      security:
+      - BearerAuth: []
       summary: Get a department
       tags:
       - departments
@@ -461,6 +529,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - BearerAuth: []
       summary: Get payrolls for a worker
       tags:
       - payrolls
@@ -488,16 +558,33 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/common.APIError'
+      security:
+      - BearerAuth: []
       summary: Calculate payroll
       tags:
       - payrolls
   /payrolls:
     get:
-      description: Get all payrolls
+      description: Get payrolls with optional pagination query parameters
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Page size (default 10)
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
-      responses: {}
-      summary: List payrolls
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pagination.PaginationResponse'
+      security:
+      - BearerAuth: []
+      summary: List payrolls (paginated)
       tags:
       - payrolls
   /reports/workers/attendance:
@@ -531,22 +618,33 @@ paths:
             items:
               $ref: '#/definitions/report.WorkerAttendanceReport'
             type: array
+      security:
+      - BearerAuth: []
       summary: Get worker attendance report
       tags:
       - reports
   /workers:
     get:
-      description: Get all workers
+      description: Get workers with optional pagination query parameters
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Page size (default 10)
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/workers.Worker'
-            type: array
-      summary: List workers
+            $ref: '#/definitions/pagination.PaginationResponse'
+      security:
+      - BearerAuth: []
+      summary: List workers (paginated)
       tags:
       - workers
     post:
@@ -571,6 +669,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/common.APIError'
+      security:
+      - BearerAuth: []
       summary: Create a worker
       tags:
       - workers
@@ -596,6 +696,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/common.APIError'
+      security:
+      - BearerAuth: []
       summary: Update a worker
       tags:
       - workers
@@ -603,6 +705,8 @@ paths:
     delete:
       description: Delete a worker by ID
       responses: {}
+      security:
+      - BearerAuth: []
       summary: Delete a worker
       tags:
       - workers
@@ -615,7 +719,15 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/workers.Worker'
+      security:
+      - BearerAuth: []
       summary: Get a worker
       tags:
       - workers
+securityDefinitions:
+  BearerAuth:
+    description: Type 'Bearer <JWT_TOKEN>'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

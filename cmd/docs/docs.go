@@ -37,22 +37,38 @@ const docTemplate = `{
         },
         "/attendances": {
             "get": {
-                "description": "Get all attendances",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get attendances with optional pagination query parameters",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "attendances"
                 ],
-                "summary": "List attendances",
+                "summary": "List attendances (paginated)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (default 10)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/attendance.Attendance"
-                            }
+                            "$ref": "#/definitions/pagination.PaginationResponse"
                         }
                     }
                 }
@@ -60,6 +76,11 @@ const docTemplate = `{
         },
         "/attendances/checkin": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new attendance record for a worker",
                 "consumes": [
                     "application/json"
@@ -87,6 +108,11 @@ const docTemplate = `{
         },
         "/attendances/checkout": {
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update the check-out time of an existing attendance record",
                 "consumes": [
                     "application/json"
@@ -121,6 +147,11 @@ const docTemplate = `{
         },
         "/attendances/worker/{worker_id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get all attendance records for a specific worker",
                 "produces": [
                     "application/json"
@@ -153,6 +184,11 @@ const docTemplate = `{
         },
         "/attendances/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get an attendance record by its ID",
                 "produces": [
                     "application/json"
@@ -274,27 +310,48 @@ const docTemplate = `{
         },
         "/departments": {
             "get": {
-                "description": "Get all departments",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get departments with optional pagination query parameters",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "departments"
                 ],
-                "summary": "List departments",
+                "summary": "List departments (paginated)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (default 10)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/departments.Department"
-                            }
+                            "$ref": "#/definitions/pagination.PaginationResponse"
                         }
                     }
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update an existing department",
                 "consumes": [
                     "application/json"
@@ -333,6 +390,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new department",
                 "consumes": [
                     "application/json"
@@ -373,6 +435,11 @@ const docTemplate = `{
         },
         "/departments/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get a department by ID",
                 "produces": [
                     "application/json"
@@ -391,6 +458,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a department by ID",
                 "tags": [
                     "departments"
@@ -401,6 +473,11 @@ const docTemplate = `{
         },
         "/payroll/:workerId": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get payrolls by worker ID",
                 "produces": [
                     "application/json"
@@ -423,6 +500,11 @@ const docTemplate = `{
         },
         "/payroll/calculate": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Calculate net salary for a payroll payload",
                 "consumes": [
                     "application/json"
@@ -464,19 +546,50 @@ const docTemplate = `{
         },
         "/payrolls": {
             "get": {
-                "description": "Get all payrolls",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get payrolls with optional pagination query parameters",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "payrolls"
                 ],
-                "summary": "List payrolls",
-                "responses": {}
+                "summary": "List payrolls (paginated)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (default 10)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pagination.PaginationResponse"
+                        }
+                    }
+                }
             }
         },
         "/reports/workers/attendance": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get aggregated attendance data for workers within a date range",
                 "produces": [
                     "application/json"
@@ -528,27 +641,48 @@ const docTemplate = `{
         },
         "/workers": {
             "get": {
-                "description": "Get all workers",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get workers with optional pagination query parameters",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "workers"
                 ],
-                "summary": "List workers",
+                "summary": "List workers (paginated)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (default 10)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/workers.Worker"
-                            }
+                            "$ref": "#/definitions/pagination.PaginationResponse"
                         }
                     }
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update an existing worker",
                 "consumes": [
                     "application/json"
@@ -587,6 +721,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new worker",
                 "consumes": [
                     "application/json"
@@ -627,6 +766,11 @@ const docTemplate = `{
         },
         "/workers/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get a worker by ID",
                 "produces": [
                     "application/json"
@@ -645,6 +789,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a worker by ID",
                 "tags": [
                     "workers"
@@ -697,12 +846,13 @@ const docTemplate = `{
         "auth.LoginDto": {
             "type": "object",
             "required": [
-                "email",
                 "password"
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
                 },
                 "password": {
                     "type": "string",
@@ -713,16 +863,19 @@ const docTemplate = `{
         "auth.RegisterDto": {
             "type": "object",
             "required": [
-                "email",
                 "name",
                 "password"
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
                 },
                 "password": {
                     "type": "string",
@@ -785,16 +938,20 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
                 }
             }
         },
         "dtos.CreatePayrollDto": {
             "type": "object",
             "required": [
+                "base_salary",
                 "month",
                 "worker_id"
             ],
@@ -803,7 +960,8 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "bonus": {
-                    "type": "number"
+                    "type": "number",
+                    "minimum": 0
                 },
                 "deductions": {
                     "type": "number"
@@ -823,11 +981,19 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "department_id": {
+                    "type": "integer"
+                },
                 "email": {
                     "type": "string"
                 },
-                "name": {
+                "hire_date": {
                     "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
                 }
             }
         },
@@ -853,13 +1019,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
                 }
             }
         },
@@ -871,6 +1040,9 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "department_id": {
+                    "type": "integer"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -878,7 +1050,27 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
+                }
+            }
+        },
+        "pagination.PaginationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
                 }
             }
         },
@@ -936,6 +1128,14 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type 'Bearer \u003cJWT_TOKEN\u003e'",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

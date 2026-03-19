@@ -34,5 +34,9 @@ func RunMigrations() error {
 		return err
 	}
 
-	return m.Up()
+	err = m.Up()
+	if err == migrate.ErrNoChange {
+		return nil
+	}
+	return err
 }

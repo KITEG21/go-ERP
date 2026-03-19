@@ -12,6 +12,19 @@ func (s *WorkerService) GetAllWorkers() ([]Worker, error) {
 	return s.repo.GetAllWorkers()
 }
 
+func (s *WorkerService) GetWorkersPaginated(page int, pageSize int) ([]Worker, int64, error) {
+	count, err := s.repo.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	offset := (page - 1) * pageSize
+	workers, err := s.repo.FindPaginated(pageSize, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	return workers, count, nil
+}
+
 func (s *WorkerService) CreateWorker(worker *Worker) error {
 	return s.repo.CreateWorker(worker)
 }

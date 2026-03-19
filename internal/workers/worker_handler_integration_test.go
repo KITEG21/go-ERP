@@ -25,6 +25,12 @@ func setupWorkerRouter(t *testing.T) (*gin.Engine, int) {
 	// Optional: migrate only needed tables
 	database.DB.AutoMigrate(&Worker{}, &departments.Department{})
 
+	// Clean up any existing records to make the tests deterministic
+	database.DB.Exec("DELETE FROM payrolls")
+	database.DB.Exec("DELETE FROM attendances")
+	database.DB.Exec("DELETE FROM workers")
+	database.DB.Exec("DELETE FROM departments")
+
 	// Ensure a department exists for the FK constraint
 	testDept := departments.Department{Name: "Test Dept"}
 	err := database.DB.Create(&testDept).Error
@@ -181,6 +187,39 @@ func TestGetWorkerById_InvalidID(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Code)
+}
+func TestGetAllWorkers_Paginated(t *testing.T) {
+	r, deptID := setupWorkerRouter(t)
+
+	for i := 1; i <= 15; i++ {
+		worker := Worker{Name: fmt.Sprintf("User %d", i), Email: fmt.Sprintf("user%d@example.com", i), DepartmentId: &deptID}
+		err := database.DB.Create(&worker).Error
+		require.NoError(t, err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/workers?page=2&page_size=5", nil)
+	w := httptest.NewRecorder()
+
+	r.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var resp struct {
+		Page       int      `json:"page"`
+		PageSize   int      `json:"page_size"`
+		Total      int64    `json:"total"`
+		TotalPages int      `json:"total_pages"`
+		Data       []Worker `json:"data"`
+	}
+
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+
+	require.Equal(t, 2, resp.Page)
+	require.Equal(t, 5, resp.PageSize)
+	require.Equal(t, int64(15), resp.Total)
+	require.Equal(t, 3, resp.TotalPages)
+	require.Len(t, resp.Data, 5)
 }
 
 // helper to avoid strconv import in example

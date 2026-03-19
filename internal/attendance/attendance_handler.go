@@ -7,6 +7,7 @@ import (
 	"time"
 	"user_api/internal/common"
 	"user_api/internal/dto/attendance"
+	"user_api/internal/dto/pagination"
 )
 
 type AttendanceHandler struct {
@@ -18,19 +19,28 @@ func NewAttendanceHandler(service *AttendanceService) *AttendanceHandler {
 }
 
 // GetAllAttendances godoc
-// @Summary List attendances
-// @Description Get all attendances
+// @Summary List attendances (paginated)
+// @Description Get attendances with optional pagination query parameters
 // @Tags attendances
 // @Produce json
-// @Success 200 {array} attendance.Attendance
+// @Param page query int false "Page number (default 1)"
+// @Param page_size query int false "Page size (default 10)"
+// @Security BearerAuth
+// @Success 200 {object} pagination.PaginationResponse
 // @Router /attendances [get]
 func (h *AttendanceHandler) GetAllAttendance(c *gin.Context) {
-	attendances, err := h.service.GetAllAttendance()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, common.APIError{Message: err.Error(), Code: "400"})
+	req, ok := pagination.ParseFromQuery(c)
+	if !ok {
 		return
 	}
-	c.JSON(http.StatusOK, attendances)
+
+	attendances, total, err := h.service.GetAttendancesPaginated(req.Page, req.PageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.APIError{Message: err.Error(), Code: "500"})
+		return
+	}
+
+	c.JSON(http.StatusOK, pagination.BuildResponse(req.Page, req.PageSize, total, attendances))
 }
 
 // CreateAttendance godoc
@@ -40,6 +50,7 @@ func (h *AttendanceHandler) GetAllAttendance(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param attendance body dtos.CreateAttendanceDto true "Attendance payload"
+// @Security BearerAuth
 // @Router /attendances/checkin [post]
 func (h *AttendanceHandler) CreateAttendance(c *gin.Context) {
 	var dto dtos.CreateAttendanceDto
@@ -69,6 +80,7 @@ func (h *AttendanceHandler) CreateAttendance(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Attendance ID"
 // @Param attendance body dtos.UpdateAttendanceDto true "Updated attendance payload"
+// @Security BearerAuth
 // @Router /attendances/checkout [put]
 func (h *AttendanceHandler) UpdateAttendance(c *gin.Context) {
 	var dto dtos.UpdateAttendanceDto
@@ -102,6 +114,7 @@ func (h *AttendanceHandler) UpdateAttendance(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Attendance ID"
 // @Success 200 {object} attendance.Attendance
+// @Security BearerAuth
 // @Router /attendances/{id} [get]
 func (h *AttendanceHandler) GetAttendanceByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -124,6 +137,7 @@ func (h *AttendanceHandler) GetAttendanceByID(c *gin.Context) {
 // @Produce json
 // @Param worker_id path int true "Worker ID"
 // @Success 200 {array} attendance.Attendance
+// @Security BearerAuth
 // @Router /attendances/worker/{worker_id} [get]
 func (h *AttendanceHandler) GetAttendancesByWorkerID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("worker_id"))

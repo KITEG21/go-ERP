@@ -18,14 +18,21 @@ func AuthMiddleware(jwtService *auth.JWTService) gin.HandlerFunc {
 			return
 		}
 
+		var token string
+		// Accept both "Bearer <token>" and raw "<token>"
 		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, common.APIError{Message: "Invalid authorization header", Code: "401"})
+		if len(parts) == 2 && parts[0] == "Bearer" {
+			token = parts[1]
+		} else if len(parts) == 1 {
+			// Allow raw token (for Swagger UI compatibility)
+			token = parts[0]
+		} else {
+			c.JSON(http.StatusUnauthorized, common.APIError{Message: "Invalid authorization header format", Code: "401"})
 			c.Abort()
 			return
 		}
 
-		claims, err := jwtService.ValidateToken(parts[1])
+		claims, err := jwtService.ValidateToken(token)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, common.APIError{Message: "Invalid token", Code: "401"})
 			c.Abort()

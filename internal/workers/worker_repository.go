@@ -24,6 +24,12 @@ func (r *WorkerRepository) FindPaginated(limit int, offset int) ([]Worker, error
 	return workers, err
 }
 
+func (r *WorkerRepository) Count() (int64, error) {
+	var count int64
+	err := database.DB.Model(&Worker{}).Count(&count).Error
+	return count, err
+}
+
 func (r *WorkerRepository) CreateWorker(worker *Worker) error {
 	return database.DB.Create(worker).Error
 }

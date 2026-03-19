@@ -12,6 +12,21 @@ func (r *DepartmentRepository) GetAllDepartments() ([]Department, error) {
 	return departments, error
 }
 
+func (r *DepartmentRepository) FindPaginated(limit int, offset int) ([]Department, error) {
+	var departments []Department
+	err := database.DB.
+		Limit(limit).
+		Offset(offset).
+		Find(&departments).Error
+	return departments, err
+}
+
+func (r *DepartmentRepository) Count() (int64, error) {
+	var count int64
+	err := database.DB.Model(&Department{}).Count(&count).Error
+	return count, err
+}
+
 func (r *DepartmentRepository) CreateDepartment(department *Department) error {
 	return database.DB.Create(department).Error
 }

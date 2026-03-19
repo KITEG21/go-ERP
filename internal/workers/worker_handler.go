@@ -3,12 +3,14 @@ package workers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
 	"user_api/internal/common"
+	"user_api/internal/dto/pagination"
 	"user_api/internal/dto/worker"
 )
 
@@ -32,15 +34,28 @@ func (h *WorkerHandler) TestHandler(c *gin.Context) {
 }
 
 // GetAllWorkers godoc
-// @Summary List workers
-// @Description Get all workers
+// @Summary List workers (paginated)
+// @Description Get workers with optional pagination query parameters
 // @Tags workers
 // @Produce json
-// @Success 200 {array} workers.Worker
+// @Param page query int false "Page number (default 1)"
+// @Param page_size query int false "Page size (default 10)"
+// @Security BearerAuth
+// @Success 200 {object} pagination.PaginationResponse
 // @Router /workers [get]
 func (h *WorkerHandler) GetAllWorkers(c *gin.Context) {
-	workers, _ := h.service.GetAllWorkers()
-	c.JSON(http.StatusOK, workers)
+	req, ok := pagination.ParseFromQuery(c)
+	if !ok {
+		return
+	}
+
+	workers, total, err := h.service.GetWorkersPaginated(req.Page, req.PageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.APIError{Message: err.Error(), Code: "500"})
+		return
+	}
+
+	c.JSON(http.StatusOK, pagination.BuildResponse(req.Page, req.PageSize, total, workers))
 }
 
 // CreateWorker godoc
@@ -52,6 +67,7 @@ func (h *WorkerHandler) GetAllWorkers(c *gin.Context) {
 // @Param worker body dtos.CreateWorkerDto true "Worker payload"
 // @Success 201 {object} dtos.CreateWorkerDto
 // @Failure 400 {object} common.APIError
+// @Security BearerAuth
 // @Router /workers [post]
 func (h *WorkerHandler) CreateWorker(c *gin.Context) {
 	var dto dtos.CreateWorkerDto
@@ -77,16 +93,34 @@ func (h *WorkerHandler) CreateWorker(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
-	var worker = Worker{
-		Name:  dto.Name,
-		Email: dto.Email,
+	var hireDate string
+	if dto.HireDate != nil && *dto.HireDate != "" {
+		_, err := time.Parse("2006-01-02", *dto.HireDate)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, common.APIError{Message: "Invalid hire_date format, use YYYY-MM-DD", Code: "400"})
+			return
+		}
+		hireDate = *dto.HireDate
+	} else {
+		hireDate = time.Now().Format("2006-01-02")
+	}
+
+	worker := Worker{
+		Name:     dto.Name,
+		Email:    dto.Email,
+		HireDate: hireDate,
 	}
 	if dto.DepartmentId != nil {
 		worker.DepartmentId = dto.DepartmentId
 	}
 
-	h.service.CreateWorker(&worker)
-	c.JSON(http.StatusCreated, dto)
+	err = h.service.CreateWorker(&worker)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.APIError{Message: err.Error(), Code: "500"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, worker)
 }
 
 // GetWorkerById godoc
@@ -94,6 +128,7 @@ func (h *WorkerHandler) CreateWorker(c *gin.Context) {
 // @Description Get a worker by ID
 // @Tags workers
 // @Produce json
+// @Security BearerAuth
 // @Success 200 {object} workers.Worker
 // @Router /workers/{id} [get]
 func (h *WorkerHandler) GetWorkerById(c *gin.Context) {
@@ -120,6 +155,7 @@ func (h *WorkerHandler) GetWorkerById(c *gin.Context) {
 // @Param worker body dtos.UpdateWorkerDto true "Worker payload"
 // @Success 201 {object} dtos.UpdateWorkerDto
 // @Failure 400 {object} common.APIError
+// @Security BearerAuth
 // @Router /workers [put]
 func (h *WorkerHandler) UpdateWorker(c *gin.Context) {
 	var dto dtos.UpdateWorkerDto
@@ -164,6 +200,7 @@ func (h *WorkerHandler) UpdateWorker(c *gin.Context) {
 // @Description Delete a worker by ID
 // @Router /workers/{id} [delete]
 // @Tags workers
+// @Security BearerAuth
 func (h *WorkerHandler) DeleteWorker(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	h.service.DeleteWorker(id)

@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS payrolls;
-DROP TABLE IF EXISTS attendance;
+DROP TABLE IF EXISTS attendances;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS workers;
 DROP TABLE IF EXISTS departments;
