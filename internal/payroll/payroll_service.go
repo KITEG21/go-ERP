@@ -1,10 +1,10 @@
 package payroll
 
 type PayrollService struct {
-	repository PayrollRepository
+	repository PayrollRepo
 }
 
-func NewPayrollService(repository PayrollRepository) *PayrollService {
+func NewPayrollService(repository PayrollRepo) *PayrollService {
 	return &PayrollService{repository: repository}
 }
 

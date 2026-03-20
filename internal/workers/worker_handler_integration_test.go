@@ -12,6 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 
+	"user_api/internal/common"
 	"user_api/internal/database"
 	"user_api/internal/departments"
 )
@@ -38,7 +39,8 @@ func setupWorkerRouter(t *testing.T) (*gin.Engine, int) {
 
 	repo := &WorkerRepository{}
 	svc := NewWorkerService(repo)
-	handler := NewWorkerHandler(svc)
+	validate := common.NewValidator()
+	handler := NewWorkerHandler(svc, validate)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()

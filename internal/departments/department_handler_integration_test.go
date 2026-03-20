@@ -12,6 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 
+	"user_api/internal/common"
 	"user_api/internal/database"
 )
 
@@ -24,8 +25,9 @@ func setupDepartmentRouter(t *testing.T) *gin.Engine {
 	database.DB.AutoMigrate(&Department{})
 
 	repo := &DepartmentRepository{}
-	svc := NewDepartmentService(*repo)
-	handler := NewDepartmentHandler(svc)
+	svc := NewDepartmentService(repo)
+	validate := common.NewValidator()
+	handler := NewDepartmentHandler(svc, validate)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()

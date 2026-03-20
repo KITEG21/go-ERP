@@ -9,15 +9,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/go-playground/validator/v10/non-standard/validators"
 )
 
 type PayrollHandler struct {
-	service *PayrollService
+	service  *PayrollService
+	validate *validator.Validate
 }
 
-func NewPayrollHandler(service *PayrollService) *PayrollHandler {
-	return &PayrollHandler{service: service}
+func NewPayrollHandler(service *PayrollService, validate *validator.Validate) *PayrollHandler {
+	return &PayrollHandler{service: service, validate: validate}
 }
 
 // GetAllPayrolls godoc
@@ -58,22 +58,14 @@ func (h *PayrollHandler) GetAllPayrolls(c *gin.Context) {
 // @Router /payroll/calculate [post]
 func (h *PayrollHandler) CalculatePayroll(c *gin.Context) {
 	var dto dtos.CreatePayrollDto
-	validate := validator.New()
-	validate.RegisterValidation("notblank", validators.NotBlank)
+
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "400"})
 		return
 	}
-	if err := validate.Struct(dto); err != nil {
-		var validationErrors []common.ValidationErrorResponse
-		for _, err := range err.(validator.ValidationErrors) {
-			var error common.ValidationErrorResponse
-			error.Field = err.Field()
-			error.Tag = err.Tag()
-			error.Value = err.Param()
-			error.Message = error.CustomErrorMessage(err)
-			validationErrors = append(validationErrors, error)
-		}
+	validationErrors, err := common.ValidateStruct(h.validate, dto)
+
+	if err != nil {
 		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}

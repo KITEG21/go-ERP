@@ -1,15 +1,17 @@
 package app
 
 import (
-	"github.com/gin-gonic/gin"
 	docs "user_api/cmd/docs"
 	"user_api/internal/attendance"
 	"user_api/internal/auth"
+	"user_api/internal/common"
 	"user_api/internal/departments"
 	"user_api/internal/middleware"
 	"user_api/internal/payroll"
 	"user_api/internal/reports"
 	"user_api/internal/workers"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Application struct {
@@ -19,29 +21,30 @@ type Application struct {
 func NewApp(jwtSecret string) (*Application, error) {
 
 	jwtService := auth.NewJWTService(jwtSecret)
+	validate := common.NewValidator()
 
 	workerRepo := &workers.WorkerRepository{}
 	workerService := workers.NewWorkerService(workerRepo)
-	workerHandler := workers.NewWorkerHandler(workerService)
+	workerHandler := workers.NewWorkerHandler(workerService, validate)
 
 	deptRepo := departments.DepartmentRepository{}
-	deptSvc := departments.NewDepartmentService(deptRepo)
-	deptHandler := departments.NewDepartmentHandler(deptSvc)
+	deptSvc := departments.NewDepartmentService(&deptRepo)
+	deptHandler := departments.NewDepartmentHandler(deptSvc, validate)
 
 	attendanceRepo := attendance.AttendanceRepository{}
 	attendanceService := attendance.NewAttendanceService(&attendanceRepo)
 	attendanceHandler := attendance.NewAttendanceHandler(attendanceService)
 
 	payrollRepo := payroll.PayrollRepository{}
-	payrollService := payroll.NewPayrollService(payrollRepo)
-	payrollHandler := payroll.NewPayrollHandler(payrollService)
+	payrollService := payroll.NewPayrollService(&payrollRepo)
+	payrollHandler := payroll.NewPayrollHandler(payrollService, validate)
 
 	reportService := reports.ReportService{}
 	reportHandler := reports.NewReportHandler(&reportService)
 
 	userRepo := auth.NewUserRepository()
 	authService := auth.NewAuthService(userRepo, jwtService)
-	authHandler := auth.NewAuthHandler(authService)
+	authHandler := auth.NewAuthHandler(authService, validate)
 
 	r := gin.Default()
 	r.Use(middleware.LoggerMiddleware())

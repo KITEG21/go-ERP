@@ -1,10 +1,10 @@
 package departments
 
 type DepartmentService struct {
-	repo DepartmentRepository
+	repo DepartmentRepo
 }
 
-func NewDepartmentService(repo DepartmentRepository) *DepartmentService {
+func NewDepartmentService(repo DepartmentRepo) *DepartmentService {
 	return &DepartmentService{repo: repo}
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 
+	"user_api/internal/common"
 	"user_api/internal/database"
 	"user_api/internal/departments"
 	"user_api/internal/workers"
@@ -38,8 +39,9 @@ func setupPayrollRouter(t *testing.T) (*gin.Engine, int) {
 	t.Cleanup(func() { database.DB.Delete(&worker) })
 
 	repo := &PayrollRepository{}
-	svc := NewPayrollService(*repo)
-	handler := NewPayrollHandler(svc)
+	svc := NewPayrollService(repo)
+	validate := common.NewValidator()
+	handler := NewPayrollHandler(svc, validate)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()

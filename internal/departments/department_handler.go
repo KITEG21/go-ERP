@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/go-playground/validator/v10/non-standard/validators"
 
 	"user_api/internal/common"
 	"user_api/internal/dto/department"
@@ -14,11 +13,12 @@ import (
 )
 
 type DepartmentHandler struct {
-	service *DepartmentService
+	service  *DepartmentService
+	validate *validator.Validate
 }
 
-func NewDepartmentHandler(service *DepartmentService) *DepartmentHandler {
-	return &DepartmentHandler{service: service}
+func NewDepartmentHandler(service *DepartmentService, validate *validator.Validate) *DepartmentHandler {
+	return &DepartmentHandler{service: service, validate: validate}
 }
 
 // GetAllDepartments godoc
@@ -59,24 +59,15 @@ func (h *DepartmentHandler) GetAllDepartments(c *gin.Context) {
 // @Router /departments [post]
 func (h *DepartmentHandler) CreateDepartment(c *gin.Context) {
 	var dto dtos.CreateDepartmentDto
-	validate := validator.New()
 
-	validate.RegisterValidation("notblank", validators.NotBlank)
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "400"})
 		return
 	}
 
-	if err := validate.Struct(dto); err != nil {
-		var validationErrors []common.ValidationErrorResponse
-		for _, err := range err.(validator.ValidationErrors) {
-			var error common.ValidationErrorResponse
-			error.Field = err.Field()
-			error.Tag = err.Tag()
-			error.Value = err.Param()
-			error.Message = error.CustomErrorMessage(err)
-			validationErrors = append(validationErrors, error)
-		}
+	validationErrors, err := common.ValidateStruct(h.validate, dto)
+
+	if err != nil {
 		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
@@ -130,24 +121,14 @@ func (h *DepartmentHandler) GetDepartmentByID(c *gin.Context) {
 // @Router /departments [put]
 func (h *DepartmentHandler) UpdateDepartment(c *gin.Context) {
 	var dto dtos.UpdateDepartmentDto
-	validate := validator.New()
-
-	validate.RegisterValidation("notblank", validators.NotBlank)
 
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "400"})
 		return
 	}
-	if err := validate.Struct(dto); err != nil {
-		var validationErrors []common.ValidationErrorResponse
-		for _, err := range err.(validator.ValidationErrors) {
-			var error common.ValidationErrorResponse
-			error.Field = err.Field()
-			error.Tag = err.Tag()
-			error.Value = err.Param()
-			error.Message = error.CustomErrorMessage(err)
-			validationErrors = append(validationErrors, error)
-		}
+	validationErrors, err := common.ValidateStruct(h.validate, dto)
+
+	if err != nil {
 		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}

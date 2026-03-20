@@ -7,15 +7,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/go-playground/validator/v10/non-standard/validators"
 )
 
 type AuthHandler struct {
-	service *AuthService
+	service  *AuthService
+	validate *validator.Validate
 }
 
-func NewAuthHandler(service *AuthService) *AuthHandler {
-	return &AuthHandler{service: service}
+func NewAuthHandler(service *AuthService, validate *validator.Validate) *AuthHandler {
+	return &AuthHandler{service: service, validate: validate}
 }
 
 // Register godoc
@@ -30,26 +30,18 @@ func NewAuthHandler(service *AuthService) *AuthHandler {
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var dto auth.RegisterDto
-	validate := validator.New()
-	validate.RegisterValidation("notblank", validators.NotBlank)
 
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "400"})
 		return
 	}
-	if err := validate.Struct(dto); err != nil {
-		var validationErrors []common.ValidationErrorResponse
-		for _, err := range err.(validator.ValidationErrors) {
-			validationErrors = append(validationErrors, common.ValidationErrorResponse{
-				Field:   err.Field(),
-				Tag:     err.Tag(),
-				Value:   err.Param(),
-				Message: common.ValidationErrorResponse{}.CustomErrorMessage(err),
-			})
-		}
+	validationErrors, err := common.ValidateStruct(h.validate, dto)
+
+	if err != nil {
 		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
+
 	token, err := h.service.Register(dto)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, common.APIError{Message: err.Error(), Code: "500"})
@@ -71,24 +63,14 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var dto auth.LoginDto
-	validate := validator.New()
-	validate.RegisterValidation("notblank", validators.NotBlank)
 
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, common.APIError{Message: err.Error(), Code: "400"})
 		return
 	}
-	err := validate.Struct(dto)
+	validationErrors, err := common.ValidateStruct(h.validate, dto)
+
 	if err != nil {
-		var validationErrors []common.ValidationErrorResponse
-		for _, err := range err.(validator.ValidationErrors) {
-			validationErrors = append(validationErrors, common.ValidationErrorResponse{
-				Field:   err.Field(),
-				Tag:     err.Tag(),
-				Value:   err.Param(),
-				Message: common.ValidationErrorResponse{}.CustomErrorMessage(err),
-			})
-		}
 		c.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
