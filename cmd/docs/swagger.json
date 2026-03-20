@@ -1,13 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Simple ERP API",
-        "title": "User API",
-        "contact": {},
-        "version": "1.0"
+        "contact": {}
     },
-    "host": "localhost:8080",
-    "basePath": "/api/v1",
     "paths": {
         "/": {
             "get": {
@@ -1122,14 +1117,6 @@
                     "type": "number"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "BearerAuth": {
-            "description": "Type 'Bearer \u003cJWT_TOKEN\u003e'",
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
         }
     }
 }

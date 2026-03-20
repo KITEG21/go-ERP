@@ -1,4 +1,3 @@
-basePath: /api/v1
 definitions:
   attendance.Attendance:
     properties:
@@ -223,12 +222,8 @@ definitions:
       salary:
         type: number
     type: object
-host: localhost:8080
 info:
   contact: {}
-  description: Simple ERP API
-  title: User API
-  version: "1.0"
 paths:
   /:
     get:
@@ -726,8 +721,7 @@ paths:
       - workers
 securityDefinitions:
   BearerAuth:
-    description: Type 'Bearer <JWT_TOKEN>'
-    in: header
-    name: Authorization
     type: apiKey
+    name: Authorization
+    in: header
 swagger: "2.0"
