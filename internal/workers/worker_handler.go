@@ -7,19 +7,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/rs/zerolog"
 
 	"user_api/internal/common"
 	"user_api/internal/dto/pagination"
-	"user_api/internal/dto/worker"
+	dtos "user_api/internal/dto/worker"
 )
 
 type WorkerHandler struct {
 	service  *WorkerService
 	validate *validator.Validate
+	Logger   zerolog.Logger
 }
 
-func NewWorkerHandler(service *WorkerService, validate *validator.Validate) *WorkerHandler {
-	return &WorkerHandler{service: service, validate: validate}
+func NewWorkerHandler(service *WorkerService, validate *validator.Validate, log zerolog.Logger) *WorkerHandler {
+	return &WorkerHandler{service: service, validate: validate, Logger: log}
 }
 
 // TestHandler godoc

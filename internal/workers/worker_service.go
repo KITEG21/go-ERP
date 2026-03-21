@@ -1,10 +1,13 @@
 package workers
 
+import "github.com/rs/zerolog"
+
 type WorkerService struct {
-	repo WorkerRepo
+	repo   WorkerRepo
+	Logger zerolog.Logger
 }
 
-func NewWorkerService(repo WorkerRepo) *WorkerService {
+func NewWorkerService(repo WorkerRepo, log zerolog.Logger) *WorkerService {
 	return &WorkerService{repo: repo}
 }
 

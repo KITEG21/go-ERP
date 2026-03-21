@@ -1,11 +1,14 @@
 package payroll
 
+import "github.com/rs/zerolog"
+
 type PayrollService struct {
 	repository PayrollRepo
+	Logger     zerolog.Logger
 }
 
-func NewPayrollService(repository PayrollRepo) *PayrollService {
-	return &PayrollService{repository: repository}
+func NewPayrollService(repository PayrollRepo, log zerolog.Logger) *PayrollService {
+	return &PayrollService{repository: repository, Logger: log}
 }
 
 func (s *PayrollService) GetAllPayrolls() ([]Payroll, error) {

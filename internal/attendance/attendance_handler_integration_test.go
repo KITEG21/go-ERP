@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 
 	"user_api/internal/database"
@@ -37,9 +38,10 @@ func setupAttendanceRouter(t *testing.T) (*gin.Engine, int) {
 	worker := workers.Worker{Name: "Test Worker", Email: "test@example.com", DepartmentId: &dept.ID}
 	require.NoError(t, database.DB.Create(&worker).Error)
 
+	log := zerolog.New(zerolog.NewTestWriter(t))
 	repo := &AttendanceRepository{}
-	svc := NewAttendanceService(repo)
-	handler := NewAttendanceHandler(svc)
+	svc := NewAttendanceService(repo, log)
+	handler := NewAttendanceHandler(svc, log)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()

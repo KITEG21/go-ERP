@@ -1,21 +1,24 @@
 package attendance
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"time"
 	"user_api/internal/common"
-	"user_api/internal/dto/attendance"
+	dtos "user_api/internal/dto/attendance"
 	"user_api/internal/dto/pagination"
+
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 )
 
 type AttendanceHandler struct {
 	service *AttendanceService
+	Logger  zerolog.Logger
 }
 
-func NewAttendanceHandler(service *AttendanceService) *AttendanceHandler {
-	return &AttendanceHandler{service: service}
+func NewAttendanceHandler(service *AttendanceService, log zerolog.Logger) *AttendanceHandler {
+	return &AttendanceHandler{service: service, Logger: log}
 }
 
 // GetAllAttendances godoc

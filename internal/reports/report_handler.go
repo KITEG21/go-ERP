@@ -7,14 +7,16 @@ import (
 	"user_api/internal/common"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 )
 
 type ReportHandler struct {
-	s *ReportService
+	s      *ReportService
+	Logger zerolog.Logger
 }
 
-func NewReportHandler(s *ReportService) *ReportHandler {
-	return &ReportHandler{s: s}
+func NewReportHandler(s *ReportService, log zerolog.Logger) *ReportHandler {
+	return &ReportHandler{s: s, Logger: log}
 }
 
 // GetWorkerAttendanceReport godoc

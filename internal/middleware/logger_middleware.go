@@ -1,12 +1,13 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
-	"log"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 )
 
-func LoggerMiddleware() gin.HandlerFunc {
+func LoggerMiddleware(logger zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
@@ -14,13 +15,12 @@ func LoggerMiddleware() gin.HandlerFunc {
 
 		duration := time.Since(start)
 
-		log.Printf(
-			"%s %s %d %s",
-			c.Request.Method,
-			c.Request.URL.Path,
-			c.Writer.Status(),
-			duration,
-		)
+		logger.Info().
+			Str("method", c.Request.Method).
+			Str("path", c.Request.URL.Path).
+			Int("status", c.Writer.Status()).
+			Dur("duration", duration).
+			Msg("Request handled")
 	}
 
 }

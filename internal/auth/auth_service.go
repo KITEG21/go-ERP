@@ -2,17 +2,20 @@ package auth
 
 import (
 	"errors"
-	"golang.org/x/crypto/bcrypt"
 	"user_api/internal/dto/auth"
+
+	"github.com/rs/zerolog"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
 	repository *UserRepository
 	jwtService *JWTService
+	Logger     zerolog.Logger
 }
 
-func NewAuthService(repository *UserRepository, jwtService *JWTService) *AuthService {
-	return &AuthService{repository: repository, jwtService: jwtService}
+func NewAuthService(repository *UserRepository, jwtService *JWTService, log zerolog.Logger) *AuthService {
+	return &AuthService{repository: repository, jwtService: jwtService, Logger: log}
 }
 
 func (s *AuthService) Register(dto auth.RegisterDto) (string, error) {

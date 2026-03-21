@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 
 	"user_api/internal/common"
@@ -38,10 +39,11 @@ func setupPayrollRouter(t *testing.T) (*gin.Engine, int) {
 	require.NoError(t, database.DB.Create(&worker).Error)
 	t.Cleanup(func() { database.DB.Delete(&worker) })
 
+	log := zerolog.New(zerolog.NewTestWriter(t))
 	repo := &PayrollRepository{}
-	svc := NewPayrollService(repo)
+	svc := NewPayrollService(repo, log)
 	validate := common.NewValidator()
-	handler := NewPayrollHandler(svc, validate)
+	handler := NewPayrollHandler(svc, validate, log)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()

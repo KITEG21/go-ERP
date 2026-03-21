@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 
 	"user_api/internal/common"
@@ -37,10 +38,11 @@ func setupWorkerRouter(t *testing.T) (*gin.Engine, int) {
 	err := database.DB.Create(&testDept).Error
 	require.NoError(t, err)
 
+	log := zerolog.New(zerolog.NewTestWriter(t))
 	repo := &WorkerRepository{}
-	svc := NewWorkerService(repo)
+	svc := NewWorkerService(repo, log)
 	validate := common.NewValidator()
-	handler := NewWorkerHandler(svc, validate)
+	handler := NewWorkerHandler(svc, validate, log)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()

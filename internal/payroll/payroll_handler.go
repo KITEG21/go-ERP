@@ -5,19 +5,21 @@ import (
 	"strconv"
 	"user_api/internal/common"
 	"user_api/internal/dto/pagination"
-	"user_api/internal/dto/payroll"
+	dtos "user_api/internal/dto/payroll"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/rs/zerolog"
 )
 
 type PayrollHandler struct {
 	service  *PayrollService
 	validate *validator.Validate
+	Logger   zerolog.Logger
 }
 
-func NewPayrollHandler(service *PayrollService, validate *validator.Validate) *PayrollHandler {
-	return &PayrollHandler{service: service, validate: validate}
+func NewPayrollHandler(service *PayrollService, validate *validator.Validate, log zerolog.Logger) *PayrollHandler {
+	return &PayrollHandler{service: service, validate: validate, Logger: log}
 }
 
 // GetAllPayrolls godoc

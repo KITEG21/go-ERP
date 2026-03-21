@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 
 	"user_api/internal/common"
@@ -24,10 +25,11 @@ func setupDepartmentRouter(t *testing.T) *gin.Engine {
 	database.Connect()
 	database.DB.AutoMigrate(&Department{})
 
+	log := zerolog.New(zerolog.NewTestWriter(t))
 	repo := &DepartmentRepository{}
-	svc := NewDepartmentService(repo)
+	svc := NewDepartmentService(repo, log)
 	validate := common.NewValidator()
-	handler := NewDepartmentHandler(svc, validate)
+	handler := NewDepartmentHandler(svc, validate, log)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()

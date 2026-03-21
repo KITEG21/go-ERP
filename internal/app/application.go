@@ -12,42 +12,44 @@ import (
 	"user_api/internal/workers"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 )
 
 type Application struct {
 	Engine *gin.Engine
+	Logger zerolog.Logger
 }
 
-func NewApp(jwtSecret string) (*Application, error) {
+func NewApp(jwtSecret string, log zerolog.Logger) (*Application, error) {
 
 	jwtService := auth.NewJWTService(jwtSecret)
 	validate := common.NewValidator()
 
 	workerRepo := &workers.WorkerRepository{}
-	workerService := workers.NewWorkerService(workerRepo)
-	workerHandler := workers.NewWorkerHandler(workerService, validate)
+	workerService := workers.NewWorkerService(workerRepo, log)
+	workerHandler := workers.NewWorkerHandler(workerService, validate, log)
 
 	deptRepo := departments.DepartmentRepository{}
-	deptSvc := departments.NewDepartmentService(&deptRepo)
-	deptHandler := departments.NewDepartmentHandler(deptSvc, validate)
+	deptSvc := departments.NewDepartmentService(&deptRepo, log)
+	deptHandler := departments.NewDepartmentHandler(deptSvc, validate, log)
 
 	attendanceRepo := attendance.AttendanceRepository{}
-	attendanceService := attendance.NewAttendanceService(&attendanceRepo)
-	attendanceHandler := attendance.NewAttendanceHandler(attendanceService)
+	attendanceService := attendance.NewAttendanceService(&attendanceRepo, log)
+	attendanceHandler := attendance.NewAttendanceHandler(attendanceService, log)
 
 	payrollRepo := payroll.PayrollRepository{}
-	payrollService := payroll.NewPayrollService(&payrollRepo)
-	payrollHandler := payroll.NewPayrollHandler(payrollService, validate)
+	payrollService := payroll.NewPayrollService(&payrollRepo, log)
+	payrollHandler := payroll.NewPayrollHandler(payrollService, validate, log)
 
 	reportService := reports.ReportService{}
-	reportHandler := reports.NewReportHandler(&reportService)
+	reportHandler := reports.NewReportHandler(&reportService, log)
 
 	userRepo := auth.NewUserRepository()
-	authService := auth.NewAuthService(userRepo, jwtService)
-	authHandler := auth.NewAuthHandler(authService, validate)
+	authService := auth.NewAuthService(userRepo, jwtService, log)
+	authHandler := auth.NewAuthHandler(authService, validate, log)
 
 	r := gin.Default()
-	r.Use(middleware.LoggerMiddleware())
+	r.Use(middleware.LoggerMiddleware(log))
 	r.SetTrustedProxies([]string{"127.0.0.1"})
 
 	// Ensure documentation paths use API version prefix from routing
@@ -76,5 +78,5 @@ func NewApp(jwtSecret string) (*Application, error) {
 	registerAuthRoutes(r, authHandler)
 	registerAPIRoutes(r, workerHandler, deptHandler, attendanceHandler, payrollHandler, reportHandler, jwtService)
 
-	return &Application{Engine: r}, nil
+	return &Application{Engine: r, Logger: log}, nil
 }
