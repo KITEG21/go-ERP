@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.env.test
+*_test.go
+
+# Documentation
+*.md
+!readme.md
+API_DOCUMENTATION.md
+
+# Docker
+Dockerfile
+docker-compose*.yml
+
+# Grafana
+grafana/
+
+# Prometheus
+prometheus.yml
+
+# Build artifacts
+/api
+*.exe
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local development
+.cmd/

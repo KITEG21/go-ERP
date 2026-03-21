@@ -1,0 +1,42 @@
+{
+  "panels": [
+    {
+      "title": "Total Requests",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(user_api_http_requests_total[5m]))",
+          "legendFormat": "req/s"
+        }
+      ]
+    },
+    {
+      "title": "Error Rate %",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "sum(rate(user_api_http_requests_total{status=~\"5..\"}[5m])) / sum(rate(user_api_http_requests_total[5m])) * 100"
+        }
+      ]
+    },
+    {
+      "title": "p95 Latency",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(user_api_http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "title": "Requests by Status",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "sum by (status) (rate(user_api_http_requests_total[5m]))"
+        }
+      ]
+    }
+  ]
+}

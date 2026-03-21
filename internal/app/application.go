@@ -54,6 +54,7 @@ func NewApp(jwtSecret string, log zerolog.Logger) (*Application, error) {
 
 	r := gin.Default()
 	r.Use(middleware.LoggerMiddleware(log))
+	r.Use(middleware.MetricsMiddleware())
 	r.SetTrustedProxies([]string{"127.0.0.1"})
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "https://your-frontend.example.com"},

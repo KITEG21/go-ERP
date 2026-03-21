@@ -10,12 +10,15 @@ import (
 	"user_api/internal/workers"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func registerAuthRoutes(r *gin.Engine, h *auth.AuthHandler) {
 	public := r.Group("/api/v1/auth")
 	public.POST("/register", h.Register)
 	public.POST("/login", h.Login)
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
 }
 
 func registerAPIRoutes(r *gin.Engine, wh *workers.WorkerHandler, dh *departments.DepartmentHandler, ah *attendance.AttendanceHandler,

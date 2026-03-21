@@ -1,10 +1,11 @@
 # User API Documentation
 
-A REST API for managing employees, departments, attendance tracking, payroll processing, and attendance reports.
+A production-ready REST API for managing employees, departments, attendance tracking, payroll processing, and attendance reports.
 
 **Base URL:** `http://localhost:8080/api/v1`
 
 **Swagger UI:** `http://localhost:8080/swagger/index.html`
+**Scalar UI:** `http://localhost:8080/scalar`
 
 ---
 
@@ -16,12 +17,109 @@ Most endpoints require JWT authentication. Include the token in the `Authorizati
 Authorization: Bearer <your_jwt_token>
 ```
 
-### Endpoints (Public)
+### Public Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/auth/register` | Register a new user |
 | POST | `/auth/login` | Authenticate and get JWT token |
+
+---
+
+## Common Features
+
+### Pagination
+
+All list endpoints support pagination with query parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | int | 1 | Page number |
+| `page_size` | int | 10 | Items per page |
+
+**Response Format:**
+```json
+{
+  "page": 1,
+  "page_size": 10,
+  "total": 50,
+  "total_pages": 5,
+  "data": [...]
+}
+```
+
+### Error Responses
+
+**Validation Error (400):**
+```json
+[
+  {
+    "field": "email",
+    "tag": "email",
+    "value": "",
+    "message": "Must be a valid email address"
+  }
+]
+```
+
+**Standard Error:**
+```json
+{
+  "code": "404",
+  "message": "Resource not found"
+}
+```
+
+---
+
+## Auth
+
+### Register User
+
+Register a new user account.
+
+**Endpoint:** `POST /auth/register`
+
+**Request Body:**
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "secret123"
+}
+```
+
+**Validation:** `name`, `email` (valid format), `password` (min 6 chars) are required.
+
+**Response (200):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+---
+
+### Login
+
+Authenticate and receive JWT token.
+
+**Endpoint:** `POST /auth/login`
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com",
+  "password": "secret123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
 
 ---
 
@@ -36,7 +134,11 @@ Authorization: Bearer <your_jwt_token>
   "email": "john@example.com",
   "phone": "+1234567890",
   "department_id": 1,
-  "department": { "id": 1, "name": "Engineering", "description": "..." },
+  "department": {
+    "id": 1,
+    "name": "Engineering",
+    "description": "Software development team"
+  },
   "salary": 50000.00,
   "hire_date": "2024-01-15"
 }
@@ -44,39 +146,51 @@ Authorization: Bearer <your_jwt_token>
 
 ### Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/workers` | Required | List all workers |
-| GET | `/workers/:id` | Required | Get worker by ID |
-| POST | `/workers` | Required | Create a new worker |
-| PUT | `/workers` | Required | Update a worker |
-| DELETE | `/workers/:id` | Required | Delete a worker |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/workers` | List all workers (paginated) |
+| POST | `/workers` | Create a new worker |
+| GET | `/workers/:id` | Get worker by ID |
+| PUT | `/workers` | Update a worker |
+| DELETE | `/workers/:id` | Delete a worker |
 
-#### Create Worker
+### Create Worker
 
 **Request Body:**
 ```json
 {
   "name": "Jane Smith",
   "email": "jane@example.com",
-  "department_id": 2
+  "department_id": 2,
+  "hire_date": "2024-02-01"
 }
 ```
 
-**Validation:** `name` (required, 3-100 chars), `email` (required, valid email format)
+**Validation:**
+- `name`: required, 3-100 characters
+- `email`: required, valid email format
+- `department_id`: optional, must be > 0
+- `hire_date`: optional, format YYYY-MM-DD (defaults to today)
 
-#### Update Worker
+**Response (201):** Returns created worker object.
+
+---
+
+### Update Worker
 
 **Request Body:**
 ```json
 {
   "id": 1,
   "name": "John Doe Updated",
-  "email": "john.updated@example.com"
+  "email": "john.updated@example.com",
+  "department_id": 3
 }
 ```
 
 **Validation:** `id`, `name`, `email` are required.
+
+**Response (200):** Returns updated worker object.
 
 ---
 
@@ -94,15 +208,15 @@ Authorization: Bearer <your_jwt_token>
 
 ### Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/departments` | Required | List all departments |
-| GET | `/departments/:id` | Required | Get department by ID |
-| POST | `/departments` | Required | Create a new department |
-| PUT | `/departments` | Required | Update a department |
-| DELETE | `/departments/:id` | Required | Delete a department |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/departments` | List all departments (paginated) |
+| POST | `/departments` | Create a new department |
+| GET | `/departments/:id` | Get department by ID |
+| PUT | `/departments` | Update a department |
+| DELETE | `/departments/:id` | Delete a department |
 
-#### Create Department
+### Create Department
 
 **Request Body:**
 ```json
@@ -112,9 +226,13 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-**Validation:** `name` (required)
+**Validation:** `name` is required.
 
-#### Update Department
+**Response (201):** Returns created department object.
+
+---
+
+### Update Department
 
 **Request Body:**
 ```json
@@ -125,7 +243,9 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-**Validation:** `id` and `name` (required)
+**Validation:** `id` and `name` are required.
+
+**Response (200):** Returns updated department object.
 
 ---
 
@@ -155,15 +275,15 @@ Authorization: Bearer <your_jwt_token>
 
 ### Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/attendances` | Required | List all attendance records |
-| GET | `/attendances/:id` | Required | Get attendance by ID |
-| GET | `/attendances/worker/:worker_id` | Required | Get attendance for a worker |
-| POST | `/attendances` | Required | Create attendance record (check-in) |
-| PUT | `/attendances/:id` | Required | Update attendance (check-out) |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/attendances` | List all attendances (paginated) |
+| POST | `/attendances` | Create attendance record |
+| GET | `/attendances/:id` | Get attendance by ID |
+| PUT | `/attendances/:id` | Update attendance (check-out) |
+| GET | `/attendances/worker/:worker_id` | Get attendance for a worker |
 
-#### Create Attendance (Check-In)
+### Create Attendance
 
 **Request Body:**
 ```json
@@ -175,9 +295,13 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-**Validation:** `worker_id`, `date`, `check_in`, `check_out` (all required)
+**Validation:** `worker_id`, `date`, `check_in`, `check_out` are all required.
 
-#### Update Attendance (Check-Out)
+**Response (201):** Returns created attendance object.
+
+---
+
+### Update Attendance (Check-Out)
 
 **Request Body:**
 ```json
@@ -187,7 +311,9 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-**Validation:** `id` and `check_out` (required)
+**Validation:** `id` and `check_out` (format: HH:MM:SS) are required.
+
+**Response (200):** Returns updated attendance object.
 
 ---
 
@@ -219,13 +345,17 @@ Authorization: Bearer <your_jwt_token>
 
 ### Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/payrolls` | Required | List all payroll records |
-| GET | `/payrolls/:workerId` | Required | Get payroll for a worker |
-| POST | `/payroll/calculate` | Required | Calculate payroll (base + bonus - deductions) |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/payrolls` | List all payroll records (paginated) |
+| GET | `/payrolls/:workerId` | Get payroll for a worker |
+| POST | `/payroll/calculate` | Calculate payroll (base + bonus - deductions) |
 
-#### Calculate Payroll
+### Calculate Payroll
+
+Calculates net salary from base salary, bonus, and deductions.
+
+**Endpoint:** `POST /payroll/calculate`
 
 **Request Body:**
 ```json
@@ -238,15 +368,29 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-**Response:**
+**Validation:** `worker_id` and `month` are required.
+
+**Response (200):**
 ```json
 {
-  "net_salary": 5300.00,
-  "message": "Payroll calculated successfully"
+  "worker_id": 1,
+  "month": "2024-01",
+  "base_salary": 5000.00,
+  "bonus": 500.00,
+  "deductions": 200.00,
+  "net_salary": 5300.00
 }
 ```
 
-**Validation:** `worker_id` and `month` (required)
+**Formula:** `net_salary = base_salary + bonus - deductions`
+
+---
+
+### Get Payroll by Worker
+
+**Endpoint:** `GET /payrolls/:workerId`
+
+**Response (200):** Returns array of payroll records for the worker.
 
 ---
 
@@ -268,38 +412,46 @@ Authorization: Bearer <your_jwt_token>
 
 ### Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/reports/workers/attendance` | Required | Get attendance report for workers |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/reports/workers/attendance` | Get attendance report for workers |
 
-#### Query Parameters
+### Get Worker Attendance Report
+
+Aggregated attendance data for workers within a date range.
+
+**Query Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `start_date` | string | Yes | Start date (YYYY-MM-DD) |
 | `end_date` | string | Yes | End date (YYYY-MM-DD) |
 | `department_id` | integer | No | Filter by department |
-| `worker_id` | integer | No | Filter by worker |
+| `worker_id` | integer | No | Filter by specific worker |
 
-**Example:**
+**Example Request:**
 ```
 GET /reports/workers/attendance?start_date=2024-01-01&end_date=2024-01-31&department_id=1
 ```
 
----
-
-## Error Responses
-
-All endpoints may return error responses in the following format:
-
+**Response (200):**
 ```json
-{
-  "code": "VALIDATION_ERROR",
-  "message": "Email is required"
-}
+[
+  {
+    "workerId": 1,
+    "workerName": "John Doe",
+    "department": "Engineering",
+    "daysPresent": 22,
+    "daysAbsent": 3,
+    "hoursWorked": 176.5,
+    "attendanceRate": 88.0
+  }
+]
 ```
 
-### Common HTTP Status Codes
+---
+
+## HTTP Status Codes
 
 | Code | Description |
 |------|-------------|
@@ -308,7 +460,16 @@ All endpoints may return error responses in the following format:
 | 400 | Bad Request (validation error) |
 | 401 | Unauthorized (missing/invalid token) |
 | 404 | Not Found |
+| 429 | Too Many Requests (rate limited) |
 | 500 | Internal Server Error |
+
+---
+
+## Rate Limiting
+
+The API limits requests to **5 requests per second** with a burst of 10.
+
+If exceeded, returns `429 Too Many Requests`.
 
 ---
 
@@ -317,48 +478,30 @@ All endpoints may return error responses in the following format:
 ```
 user_api/
 ├── cmd/
-│   ├── main.go              # Application entry point
-│   └── docs/                 # Swagger generated docs
+│   ├── main.go              # Entry point + graceful shutdown
+│   └── docs/                # Generated Swagger docs
 ├── internal/
+│   ├── app/
+│   │   ├── application.go   # DI setup, CORS, rate limiting
+│   │   └── router.go        # Route definitions
 │   ├── attendance/           # Attendance module
-│   │   ├── attendance_handler.go
-│   │   ├── attendance_model.go
-│   │   ├── attendance_repository.go
-│   │   └── attendance_service.go
-│   ├── auth/                 # Authentication module
-│   │   ├── auth_handler.go
-│   │   ├── auth_service.go
-│   │   ├── jwt_service.go
-│   │   └── user_model.go
-│   ├── departments/          # Departments module
-│   │   ├── department_handler.go
-│   │   ├── department_model.go
-│   │   └── department_repository.go
-│   ├── dto/                  # Data Transfer Objects
-│   │   ├── attendance/
-│   │   ├── auth/
-│   │   ├── department/
-│   │   ├── payroll/
-│   │   ├── report/
-│   │   └── worker/
+│   ├── auth/                # JWT authentication
+│   ├── common/              # Shared utilities (errors, validation)
+│   ├── database/            # DB connection + migrations
+│   ├── departments/         # Department module
+│   ├── dto/                 # Data Transfer Objects
+│   │   ├── pagination/      # Pagination DTOs
+│   │   └── ...
+│   ├── logger/              # zerolog wrapper
 │   ├── middleware/          # Auth & logging middleware
-│   ├── payroll/              # Payroll module
-│   │   ├── payroll_handler.go
-│   │   ├── payroll_model.go
-│   │   ├── payroll_repository.go
-│   │   └── payroll_service.go
-│   ├── reports/              # Reports module
-│   │   ├── report_handler.go
-│   │   └── report_service.go
-│   ├── workers/              # Workers module
-│   │   ├── worker_handler.go
-│   │   ├── worker_model.go
-│   │   ├── worker_repository.go
-│   │   └── worker_service.go
-│   ├── common/               # Shared utilities
-│   └── database/             # Database connection
+│   ├── payroll/            # Payroll module
+│   ├── reports/            # Reports module
+│   └── workers/            # Worker module
+├── .env.example
 └── readme.md
 ```
+
+---
 
 ## Setup
 
@@ -371,9 +514,15 @@ user_api/
    ```env
    DATABASE_URL=postgres://user:pass@localhost:5432/dbname?sslmode=disable
    JWT_SECRET=your_secret_here
+   APP_ENV=development
    ```
 
-3. Run the server:
+3. Generate Swagger docs (after any endpoint changes):
+   ```sh
+   swag init -g cmd/main.go --output cmd/docs
+   ```
+
+4. Run the server:
    ```sh
    go run ./cmd/main.go
    ```
@@ -383,6 +532,8 @@ user_api/
 ```sh
 go test ./...
 ```
+
+---
 
 ## Generate Swagger Docs
 
