@@ -18,6 +18,10 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/didip/tollbooth/v7 v7.0.2 // indirect
+	github.com/didip/tollbooth_gin v0.0.0-20250404214326-bb1a1fc0384e // indirect
+	github.com/gin-contrib/cors v1.7.6 // indirect
+	github.com/go-pkgz/expirable-cache/v3 v3.0.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect

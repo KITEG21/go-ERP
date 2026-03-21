@@ -1,6 +1,7 @@
 package app
 
 import (
+	"time"
 	docs "user_api/cmd/docs"
 	"user_api/internal/attendance"
 	"user_api/internal/auth"
@@ -11,6 +12,9 @@ import (
 	"user_api/internal/reports"
 	"user_api/internal/workers"
 
+	tollbooth "github.com/didip/tollbooth/v7"
+	tollbooth_gin "github.com/didip/tollbooth_gin"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
@@ -51,6 +55,20 @@ func NewApp(jwtSecret string, log zerolog.Logger) (*Application, error) {
 	r := gin.Default()
 	r.Use(middleware.LoggerMiddleware(log))
 	r.SetTrustedProxies([]string{"127.0.0.1"})
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "https://your-frontend.example.com"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	limiter := tollbooth.NewLimiter(5, nil) // 5 req/sec default
+	limiter.SetBurst(10)
+	limiter.SetIPLookups([]string{"RemoteAddr", "X-Forwarded-For", "X-Real-IP"})
+
+	r.Use(tollbooth_gin.LimitHandler(limiter))
 
 	// Ensure documentation paths use API version prefix from routing
 	docs.SwaggerInfo.BasePath = "/api/v1"
