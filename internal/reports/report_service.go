@@ -6,7 +6,6 @@ import (
 	"user_api/internal/attendance"
 	"user_api/internal/database"
 	"user_api/internal/dto/report"
-	"user_api/internal/workers"
 )
 
 type ReportService struct{}
@@ -18,7 +17,8 @@ func (s *ReportService) GenerateWorkerAttendanceReport(
 	var atendances []attendance.Attendance
 	query := database.DB.
 		Joins("JOIN workers ON attendances.worker_id = workers.id").
-		Joins("JOIN departments ON workers.department_id = departments.id")
+		Joins("JOIN departments ON workers.department_id = departments.id").
+		Preload("Worker.Department")
 
 	if deparmentId > 0 {
 		query = query.Where("departments.id = ?", deparmentId)
@@ -39,14 +39,10 @@ func (s *ReportService) GenerateWorkerAttendanceReport(
 
 	for _, a := range atendances {
 		if _, exists := reportMap[a.WorkerID]; !exists {
-			var w workers.Worker
-			if err := database.DB.First(&w, a.WorkerID).Error; err != nil {
-				continue
-			}
 			reportMap[a.WorkerID] = &report.WorkerAttendanceReport{
 				WorkerId:    a.WorkerID,
-				WorkerName:  w.Name,
-				Department:  w.Department.Name,
+				WorkerName:  a.Worker.Name,
+				Department:  a.Worker.Department.Name,
 				DaysPresent: 0,
 				DaysAbsent:  0,
 				HoursWorked: 0,

@@ -719,9 +719,4 @@ paths:
       summary: Get a worker
       tags:
       - workers
-securityDefinitions:
-  BearerAuth:
-    type: apiKey
-    name: Authorization
-    in: header
 swagger: "2.0"

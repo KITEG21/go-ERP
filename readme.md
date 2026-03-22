@@ -91,6 +91,30 @@ All endpoints are prefixed with `/api/v1`. Authentication required unless marked
 | POST | `/api/v1/auth/register` | Register new user |
 | POST | `/api/v1/auth/login` | Login, returns JWT |
 
+### Health Endpoints (public)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/healthz` | Liveness probe - returns OK if service is running |
+| GET | `/readyz` | Readiness probe - checks DB connectivity |
+| GET | `/health/liveness` | Same as `/healthz` |
+| GET | `/health/readiness` | Same as `/readyz` |
+
+**Liveness Response (200):**
+```json
+{"status": "ok"}
+```
+
+**Readiness Response (200):**
+```json
+{"status": "ready"}
+```
+
+**Readiness Response (503 - DB unavailable):**
+```json
+{"status": "unavailable", "error": "connection refused"}
+```
+
 ### Workers
 
 | Method | Endpoint | Description |

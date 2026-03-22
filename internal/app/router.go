@@ -4,6 +4,7 @@ import (
 	"user_api/internal/attendance"
 	"user_api/internal/auth"
 	"user_api/internal/departments"
+	"user_api/internal/health"
 	"user_api/internal/middleware"
 	"user_api/internal/payroll"
 	"user_api/internal/reports"
@@ -17,8 +18,11 @@ func registerAuthRoutes(r *gin.Engine, h *auth.AuthHandler) {
 	public := r.Group("/api/v1/auth")
 	public.POST("/register", h.Register)
 	public.POST("/login", h.Login)
-	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+}
 
+func registerPublicRoutes(r *gin.Engine) {
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	health.RegisterRoutes(r)
 }
 
 func registerAPIRoutes(r *gin.Engine, wh *workers.WorkerHandler, dh *departments.DepartmentHandler, ah *attendance.AttendanceHandler,

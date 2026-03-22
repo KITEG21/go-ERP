@@ -95,6 +95,7 @@ func NewApp(jwtSecret string, log zerolog.Logger) (*Application, error) {
 	})
 
 	registerAuthRoutes(r, authHandler)
+	registerPublicRoutes(r)
 	registerAPIRoutes(r, workerHandler, deptHandler, attendanceHandler, payrollHandler, reportHandler, jwtService)
 
 	return &Application{Engine: r, Logger: log}, nil

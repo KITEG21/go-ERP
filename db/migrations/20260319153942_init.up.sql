@@ -43,3 +43,17 @@ CREATE TABLE payrolls (
   status INT NOT NULL,
   CONSTRAINT fk_payroll_worker FOREIGN KEY (worker_id) REFERENCES workers(id)
 );
+
+-- Indexes (use IF NOT EXISTS to avoid errors if index already exists)
+		CREATE INDEX IF NOT EXISTS idx_workers_department_id ON workers(department_id);
+		CREATE INDEX IF NOT EXISTS idx_attendances_worker_date ON attendances(worker_id, date);
+		CREATE INDEX IF NOT EXISTS idx_attendances_date ON attendances(date);
+
+		-- If you want a unique payroll per worker/month:
+		CREATE UNIQUE INDEX IF NOT EXISTS uniq_payrolls_worker_month ON payrolls(worker_id, month);
+
+		-- Case-insensitive unique index for user emails (enforces uniqueness on lower(email)):
+		CREATE UNIQUE INDEX IF NOT EXISTS uniq_users_email_lower ON users (LOWER(email));
+
+		-- Partial index example: speed up queries for attendances with status = 0
+		CREATE INDEX IF NOT EXISTS idx_attendances_status_pending ON attendances(status) WHERE status = 0;

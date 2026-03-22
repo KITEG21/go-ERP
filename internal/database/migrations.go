@@ -1,8 +1,14 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func RunMigrations() error {
@@ -11,54 +17,51 @@ func RunMigrations() error {
 		return fmt.Errorf("DATABASE_URL not set")
 	}
 
-	// AutoMigrate models using existing DB connection
-	// This creates tables if they don't exist
-	err := DB.Exec(`
-		CREATE TABLE IF NOT EXISTS users (
-			id SERIAL PRIMARY KEY,
-			email VARCHAR(255) UNIQUE NOT NULL,
-			name VARCHAR(255),
-			password VARCHAR(255) NOT NULL
-		);
-		
-		CREATE TABLE IF NOT EXISTS departments (
-			id SERIAL PRIMARY KEY,
-			name VARCHAR(255) NOT NULL,
-			description TEXT
-		);
-		
-		CREATE TABLE IF NOT EXISTS workers (
-			id SERIAL PRIMARY KEY,
-			name VARCHAR(255) NOT NULL,
-			email VARCHAR(255),
-			phone VARCHAR(50),
-			department_id INTEGER REFERENCES departments(id),
-			salary DECIMAL(10,2),
-			hire_date DATE
-		);
-		
-		CREATE TABLE IF NOT EXISTS attendances (
-			id SERIAL PRIMARY KEY,
-			worker_id INTEGER REFERENCES workers(id),
-			check_in TIME,
-			check_out TIME,
-			date DATE,
-			status INTEGER DEFAULT 0
-		);
-		
-		CREATE TABLE IF NOT EXISTS payrolls (
-			id SERIAL PRIMARY KEY,
-			worker_id INTEGER REFERENCES workers(id),
-			month VARCHAR(7),
-			base_salary DECIMAL(10,2),
-			bonus DECIMAL(10,2),
-			deductions DECIMAL(10,2),
-			net_salary DECIMAL(10,2),
-			status INTEGER DEFAULT 0
-		);
-	`).Error
-
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
+		return fmt.Errorf("failed to open DB: %w", err)
+	}
+	defer db.Close()
+
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to create driver: %w", err)
+	}
+
+	// Get the directory of the running executable
+	execPath, err := os.Executable()
+	if err != nil {
+		execPath = "."
+	}
+	execDir := filepath.Dir(execPath)
+
+	// Look for migrations in different locations
+	migrationPaths := []string{
+		filepath.Join(execDir, "db", "migrations"),
+		filepath.Join(execDir, "..", "db", "migrations"),
+		"db/migrations",
+		"./db/migrations",
+	}
+
+	var m *migrate.Migrate
+	for _, migrationPath := range migrationPaths {
+		m, err = migrate.NewWithDatabaseInstance(
+			"file://"+migrationPath,
+			dsn,
+			driver,
+		)
+		if err == nil {
+			break
+		}
+	}
+
+	if m == nil {
+		// No migrations folder found, skip migrations
+		return nil
+	}
+	defer m.Close()
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
